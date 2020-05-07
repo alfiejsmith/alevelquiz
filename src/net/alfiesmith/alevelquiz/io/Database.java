@@ -1,13 +1,16 @@
 package net.alfiesmith.alevelquiz.io;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.AbstractMap.SimpleEntry;
+
+import net.alfiesmith.alevelquiz.quiz.Question;
 
 /**
  * @author AvroVulcan on 07/05/2020
@@ -68,40 +71,32 @@ public class Database {
 		String base = "insert into " + table + "(question, answer) values (?, ?);";
 
 		// No nice way to do this. Oh well...
-		List<Map.Entry<String, String>> questions = new ArrayList<>();
-		questions.add(new AbstractMap.SimpleEntry<String, String>("How many bytes in a nibble", "0.5"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("How many nibbles in a byte", "2"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("1100 in denary", "12"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("12 in hex", "C"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What is 0xB9 in denary", "185"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("How many kilobytes in a megabyte", "1000"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("How many bytes in a kilobyte", "1000"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("How many bytes in a megabyte", "1000000"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What is bigger 1001 TB or 1 PB", "1001 TB"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What is bigger 14240 KB or 14.2 MB", "14240 KB"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What hex character represents 15", "F"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What does A (hex) represent in denary ", "10"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What base is hex", "16"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What base is denary", "10"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What base is binary", "2"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("Why do we use hex", "Simpler to read")); // would be
-																											// good to
-																											// create
-																											// multiple
-																											// answers
-																											// to this
-		questions.add(new AbstractMap.SimpleEntry<String, String>("What base do computers read", "2"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("Max denary value of an unsigned byte?", "255"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>("Max denary value of signed byte", "127"));
-		questions.add(new AbstractMap.SimpleEntry<String, String>(
-				"What is the name of the bit that determines sign in a signed byte", "MSB")); // would be good to also
-																								// have most significant
-																								// bit
+		List<Question> questions = new ArrayList<>();
+		questions.add(Question.newQuestion("How many bytes in a nibble", "0.5"));
+		questions.add(Question.newQuestion("How many nibbles in a byte", "2"));
+		questions.add(Question.newQuestion("1100 in denary", "12"));
+		questions.add(Question.newQuestion("12 in hex", "C"));
+		questions.add(Question.newQuestion("What is 0xB9 in denary", "185"));
+		questions.add(Question.newQuestion("How many kilobytes in a megabyte", "1000"));
+		questions.add(Question.newQuestion("How many bytes in a kilobyte", "1000"));
+		questions.add(Question.newQuestion("How many bytes in a megabyte", "1000000"));
+		questions.add(Question.newQuestion("What is bigger 1001 TB or 1 PB", "1001 TB"));
+		questions.add(Question.newQuestion("What is bigger 14240 KB or 14.2 MB", "14240 KB"));
+		questions.add(Question.newQuestion("What hex character represents 15", "F"));
+		questions.add(Question.newQuestion("What does A (hex) represent in denary ", "10"));
+		questions.add(Question.newQuestion("What base is hex", "16"));
+		questions.add(Question.newQuestion("What base is denary", "10"));
+		questions.add(Question.newQuestion("What base is binary", "2"));
+		questions.add(Question.newQuestion("Why do we use hex", "Simpler to read"));
+		questions.add(Question.newQuestion("What base do computers read", "2"));
+		questions.add(Question.newQuestion("Max denary value of an unsigned byte?", "255"));
+		questions.add(Question.newQuestion("Max denary value of signed byte", "127"));
+		questions.add(Question.newQuestion("What is the name of the bit that determines sign in a signed byte", "MSB"));
 
-		for (Map.Entry<String, String> entry : questions) {
+		for (Question question : questions) {
 			PreparedStatement statement = connection.prepareStatement(base);
-			statement.setString(1, entry.getKey());
-			statement.setString(2, entry.getValue());
+			statement.setString(1, question.getQuestion());
+			statement.setString(2, question.getValidAnswer());
 			statement.execute();
 		}
 	}
