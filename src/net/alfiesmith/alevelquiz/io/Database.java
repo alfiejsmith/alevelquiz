@@ -1,53 +1,109 @@
 package net.alfiesmith.alevelquiz.io;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.AbstractMap.SimpleEntry;
 
 /**
  * @author AvroVulcan on 07/05/2020
  */
 public class Database {
 
-	// Most of these fields remain unused but are kept for further program development
-    private final String address;
-    private final String port;
-    private final String user;
-    private final String pass;
-    private final String database;
-    private final String table;
+	// Most of these fields remain unused but are kept for further program
+	// development
+	private final String address;
+	private final String port;
+	private final String user;
+	private final String pass;
+	private final String database;
+	private final String table;
 
-    private final String url;
+	private final String url;
 
-    private Connection connection;
+	private Connection connection;
 
-    public Database(String address, String port, String user, String pass, String database, String table) {
-        this.address = address;
-        this.port = port;
-        this.user = user;
-        this.pass = pass;
-        this.database = database;
-        this.table = table;
+	public Database(String address, String port, String user, String pass, String database, String table) {
+		this.address = address;
+		this.port = port;
+		this.user = user;
+		this.pass = pass;
+		this.database = database;
+		this.table = table;
 
-        this.url = "jdbc:mysql://" + address + ":" + port + "/" + database + "?serverTimezone=UTC"; // SQL likes to complain about timezones (especially BST)
-    }
+		this.url = "jdbc:mysql://" + address + ":" + port + "/" + database + "?serverTimezone=UTC"; // SQL likes to
+																									// complain about
+																									// timezones
+																									// (especially BST)
+	}
 
-    public void openConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        connection = DriverManager.getConnection(url, user, pass);
-    }
+	public void openConnection() throws ClassNotFoundException, SQLException {
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		connection = DriverManager.getConnection(url, user, pass);
+	}
 
-    public void createTableIfNotExists() throws SQLException {
-        String create = "create table if not exists " + table + " (id int not null, question varchar(150) not null, answer varchar(150) not null, primary key (id));";
-        PreparedStatement statement = connection.prepareStatement(create);
-        statement.execute();
-    }
+	public void createTableIfNotExists() throws SQLException {
+		String create = "create table if not exists " + table
+				+ " (id int not null auto_increment, question varchar(150) not null, answer varchar(150) not null, primary key (id));";
+		PreparedStatement statement = connection.prepareStatement(create);
+		statement.execute();
 
-    public ResultSet getQuestionData() throws SQLException{
-        PreparedStatement statement = connection.prepareStatement("SELECT * from " + table);
-        return statement.executeQuery();
-    }
+		ResultSet questionData = getQuestionData();
+		if (!questionData.next()) { // It is empty
+			populateDefaultQuestions();
+		}
+
+	}
+
+	public ResultSet getQuestionData() throws SQLException {
+		PreparedStatement statement = connection.prepareStatement("SELECT * from " + table + ";");
+		return statement.executeQuery();
+	}
+
+	private void populateDefaultQuestions() throws SQLException {
+		String base = "insert into " + table + "(question, answer) values (?, ?);";
+
+		// No nice way to do this. Oh well...
+		List<Map.Entry<String, String>> questions = new ArrayList<>();
+		questions.add(new AbstractMap.SimpleEntry<String, String>("How many bytes in a nibble", "0.5"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("How many nibbles in a byte", "2"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("1100 in denary", "12"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("12 in hex", "C"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What is 0xB9 in denary", "185"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("How many kilobytes in a megabyte", "1000"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("How many bytes in a kilobyte", "1000"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("How many bytes in a megabyte", "1000000"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What is bigger 1001 TB or 1 PB", "1001 TB"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What is bigger 14240 KB or 14.2 MB", "14240 KB"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What hex character represents 15", "F"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What does A (hex) represent in denary ", "10"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What base is hex", "16"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What base is denary", "10"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What base is binary", "2"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("Why do we use hex", "Simpler to read")); // would be
+																											// good to
+																											// create
+																											// multiple
+																											// answers
+																											// to this
+		questions.add(new AbstractMap.SimpleEntry<String, String>("What base do computers read", "2"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("Max denary value of an unsigned byte?", "255"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>("Max denary value of signed byte", "127"));
+		questions.add(new AbstractMap.SimpleEntry<String, String>(
+				"What is the name of the bit that determines sign in a signed byte", "MSB")); // would be good to also
+																								// have most significant
+																								// bit
+
+		for (Map.Entry<String, String> entry : questions) {
+			PreparedStatement statement = connection.prepareStatement(base);
+			statement.setString(1, entry.getKey());
+			statement.setString(2, entry.getValue());
+			statement.execute();
+		}
+	}
 
 }

@@ -56,15 +56,9 @@ public class QuestionManager {
             while (questionData.next()) {
                 String question = questionData.getString("question");
                 String answer = questionData.getString("answer");
-
-                // Adding it to the set of answers or creating the set if it doesn't pre exist, allowing for multiple answers per question
-                if (rawQuestions.containsKey(question)) {
-                    rawQuestions.get(question).add(answer);
-                } else {
-                    Set<String> answers = new HashSet<>();
-                    answers.add(answer);
-                    rawQuestions.put(question, answers);
-                }
+                Set<String> answers = rawQuestions.containsKey(question) ? rawQuestions.get(question) : new HashSet<>();
+                answers.add(answer);
+                rawQuestions.put(question, answers);
             }
 
             for (Map.Entry<String, Set<String>> entry : rawQuestions.entrySet()) {

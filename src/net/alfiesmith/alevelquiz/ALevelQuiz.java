@@ -16,7 +16,7 @@ public class ALevelQuiz extends Application {
 	// For the lack of a better place, I will dump all my constants here
 	// It will automatically create the SQL table and some questions if they do not exist
 	public final static int WINDOW_WIDTH = 310;
-	public final static int WINDOW_HEIGHT = 160;
+	public final static int WINDOW_HEIGHT = 200;
 
 	public final static String CSV_PATH = System.getProperty("user.dir") + "\\data.csv";
 	public final static String SQL_ADDRESS = "localhost";

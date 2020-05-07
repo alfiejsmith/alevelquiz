@@ -23,6 +23,7 @@ public class QuizManager {
     private int correct;
     private int incorrect;
 
+    // Caching for speed - some of these object creations slow the program down a lot
     private Scene cachedScene;
     private GridPane cachedPane;
     private Label cachedLabel;
@@ -73,7 +74,7 @@ public class QuizManager {
             cachedTextField = new TextField();
             cachedTextField.setMaxWidth(ALevelQuiz.WINDOW_WIDTH - 20);
             cachedTextField.setMinWidth(ALevelQuiz.WINDOW_WIDTH - 20);
-            cachedTextField.setPromptText("Enter answer here");
+            cachedTextField.setPromptText("Enter answer here...");
             GridPane.setConstraints(cachedTextField,0,2);
             cachedPane.getChildren().add(cachedTextField);
         }
@@ -81,18 +82,24 @@ public class QuizManager {
         if (cachedAnswerButton == null) {
             cachedAnswerButton = new Button("Submit");
             GridPane.setConstraints(cachedAnswerButton,0,3);
-            cachedAnswerButton.setOnAction(event -> {
-                if (!cachedTextField.getText().isEmpty()) {
-                    if (question.isCorrect(cachedTextField.getText())) {
-                        correct++;
-                    } else {
-                        incorrect++;
-                    }
-                    setScene();
-                }
-            });
             cachedPane.getChildren().add(cachedAnswerButton);
         }
+        
+        /* Have to re set to reset the question instance.
+         * Could theoretically have a getCurrentQuestion(), but for this purpose it is 
+         * just easier to re set
+         */
+        cachedAnswerButton.setOnAction(event -> {
+            if (!cachedTextField.getText().isEmpty()) {
+                if (question.isCorrect(cachedTextField.getText())) {
+                    correct++;
+                } else {
+                    incorrect++;
+                }
+                cachedTextField.setText(null);
+                setScene();
+            }
+        });
 
 
 
@@ -114,11 +121,13 @@ public class QuizManager {
 
         double percent = ((correct * 1.0) / (incorrect + correct)) * 100; // multiplied by 1.0 to get into double context
         double overallPercent = ((quizUser.getOverallCorrect() * 1.0) / (quizUser.getOverallIncorrect() + quizUser.getOverallCorrect())) * 100;
-
+        int grade = calculateGrade(percent);
+        
         Label correctLabel = new Label("Correct: " + correct);
         Label incorrectLabel = new Label("Incorrect: " + incorrect);
         Label percentLabel = new Label("Percentage Correct: " + String.format("%.2f", percent) + "%"); // Rounding decimal to 2 places
-
+        Label gradeLabel = new Label("Grade: " + grade);
+        
         Label overallCorrectLabel = new Label("Correct (lifetime): " + quizUser.getOverallCorrect());
         Label overallIncorrectLabel = new Label("Incorrect (lifetime): " + quizUser.getOverallIncorrect());
         Label overallPercentageLabel = new Label("Percentage Correct (lifetime): " + String.format("%.2f", overallPercent) + "%");
@@ -129,18 +138,41 @@ public class QuizManager {
             new ALevelQuiz().start(new Stage()); // restarting the program
         });
 
-        GridPane.setConstraints(correctLabel,0,0);
-        GridPane.setConstraints(incorrectLabel,0,1);
-        GridPane.setConstraints(percentLabel,0,2);
-        GridPane.setConstraints(overallCorrectLabel,0,3);
-        GridPane.setConstraints(overallIncorrectLabel,0,4);
-        GridPane.setConstraints(overallPercentageLabel,0,5);
-        GridPane.setConstraints(retake,1,0);
+        GridPane.setConstraints(correctLabel, 0, 0);
+        GridPane.setConstraints(incorrectLabel, 0, 1);
+        GridPane.setConstraints(percentLabel, 0, 2);
+        GridPane.setConstraints(gradeLabel, 0, 3);
+        GridPane.setConstraints(overallCorrectLabel, 0, 4);
+        GridPane.setConstraints(overallIncorrectLabel, 0, 5);
+        GridPane.setConstraints(overallPercentageLabel, 0, 6);
+        GridPane.setConstraints(retake, 1, 0);
 
         cachedPane.getChildren().clear();
-        cachedPane.getChildren().addAll(correctLabel, incorrectLabel, percentLabel, overallCorrectLabel, overallIncorrectLabel, overallPercentageLabel, retake);
+        cachedPane.getChildren().addAll(correctLabel, incorrectLabel, percentLabel, gradeLabel, overallCorrectLabel, overallIncorrectLabel, overallPercentageLabel, retake);
 
         return cachedScene;
     }
 
+    
+    private int calculateGrade(double percent) {
+    	if (percent >= 95) {
+    		return 9;
+    	} else if (percent >= 85) {
+    		return 8;
+    	} else if (percent >= 75) {
+    		return 7;
+    	} else if (percent >= 65) {
+    		return 6;
+    	} else if (percent >= 55) {
+    		return 5;
+    	} else if (percent >= 45) {
+    		return 4;
+    	} else if (percent >= 35) {
+    		return 3;
+    	} else if (percent >= 25) {
+    		return 2;
+    	} else {
+    		return 1;
+    	}
+    }
 }
